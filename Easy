@@ -1,0 +1,55 @@
+//DataBase for Employee Details:
+CREATE DATABASE company;
+
+USE company;
+
+CREATE TABLE Employee (
+    EmpID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Salary DOUBLE
+);
+
+INSERT INTO Employee VALUES 
+(1, 'Aman', 50000),
+(2, 'Akash', 60000),
+(3, 'Agraj', 55000);
+
+
+//EmployeeData.java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+public class EmployeeData {
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/company";
+        String user = "root"; // Change as per your MySQL username
+        String password = "password"; // Change as per your MySQL password
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(url, user, password);
+            Statement stmt = con.createStatement();
+
+            String query = "SELECT * FROM Employee";
+            ResultSet rs = stmt.executeQuery(query);
+
+            System.out.println("EmpID | Name | Salary");
+            System.out.println("---------------------");
+            while (rs.next()) {
+                int empID = rs.getInt("EmpID");
+                String name = rs.getString("Name");
+                double salary = rs.getDouble("Salary");
+
+                System.out.println(empID + " | " + name + " | " + salary);
+            }
+            rs.close();
+            stmt.close();
+            con.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
