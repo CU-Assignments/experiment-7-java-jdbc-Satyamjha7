@@ -1,0 +1,142 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class ProductCRUD {
+    static final String URL = "jdbc:mysql://localhost:3306/company";
+    static final String USER = "root";
+    static final String PASSWORD = "yourpassword"; // Your MySQL password
+
+    public static void main(String[] args) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(URL, USER, PASSWORD);
+            Scanner sc = new Scanner(System.in);
+
+            int choice;
+            do {
+                System.out.println("\n1. Insert Product");
+                System.out.println("2. Display Products");
+                System.out.println("3. Update Product");
+                System.out.println("4. Delete Product");
+                System.out.println("5. Exit");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+
+                switch (choice) {
+                    case 1:
+                        insertProduct(con, sc);
+                        break;
+                    case 2:
+                        displayProducts(con);
+                        break;
+                    case 3:
+                        updateProduct(con, sc);
+                        break;
+                    case 4:
+                        deleteProduct(con, sc);
+                        break;
+                    case 5:
+                        System.out.println("Exiting...");
+                        break;
+                    default:
+                        System.out.println("Invalid choice! Please try again.");
+                }
+            } while (choice != 5);
+
+            con.close();
+            sc.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    static void insertProduct(Connection con, Scanner sc) throws SQLException {
+        System.out.print("Enter Product ID: ");
+        int productID = sc.nextInt();
+        System.out.print("Enter Product Name: ");
+        String productName = sc.next();
+        System.out.print("Enter Price: ");
+        double price = sc.nextDouble();
+        System.out.print("Enter Quantity: ");
+        int quantity = sc.nextInt();
+
+        String query = "INSERT INTO Product VALUES (?, ?, ?, ?)";
+        PreparedStatement stmt = con.prepareStatement(query);
+        stmt.setInt(1, productID);
+        stmt.setString(2, productName);
+        stmt.setDouble(3, price);
+        stmt.setInt(4, quantity);
+
+        int rows = stmt.executeUpdate();
+        if (rows > 0) {
+            System.out.println("Product added successfully!");
+        } else {
+            System.out.println("Failed to add product.");
+        }
+
+        stmt.close();
+    }
+
+    static void displayProducts(Connection con) throws SQLException {
+        String query = "SELECT * FROM Product";
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+
+        System.out.println("\nProductID | ProductName | Price | Quantity");
+        System.out.println("-------------------------------------------");
+        while (rs.next()) {
+            int id = rs.getInt("ProductID");
+            String name = rs.getString("ProductName");
+            double price = rs.getDouble("Price");
+            int quantity = rs.getInt("Quantity");
+
+            System.out.printf("%-9d | %-12s | %-6.2f | %-8d\n", id, name, price, quantity);
+        }
+
+        rs.close();
+        stmt.close();
+    }
+
+    static void updateProduct(Connection con, Scanner sc) throws SQLException {
+        System.out.print("Enter Product ID to update: ");
+        int productID = sc.nextInt();
+        System.out.print("Enter new Price: ");
+        double price = sc.nextDouble();
+        System.out.print("Enter new Quantity: ");
+        int quantity = sc.nextInt();
+
+        String query = "UPDATE Product SET Price = ?, Quantity = ? WHERE ProductID = ?";
+        PreparedStatement stmt = con.prepareStatement(query);
+        stmt.setDouble(1, price);
+        stmt.setInt(2, quantity);
+        stmt.setInt(3, productID);
+
+        int rows = stmt.executeUpdate();
+        if (rows > 0) {
+            System.out.println("Product updated successfully!");
+        } else {
+            System.out.println("Product not found.");
+        }
+
+        stmt.close();
+    }
+
+    // Delete product from database
+    static void deleteProduct(Connection con, Scanner sc) throws SQLException {
+        System.out.print("Enter Product ID to delete: ");
+        int productID = sc.nextInt();
+
+        String query = "DELETE FROM Product WHERE ProductID = ?";
+        PreparedStatement stmt = con.prepareStatement(query);
+        stmt.setInt(1, productID);
+
+        int rows = stmt.executeUpdate();
+        if (rows > 0) {
+            System.out.println("Product deleted successfully!");
+        } else {
+            System.out.println("Product not found.");
+        }
+
+        stmt.close();
+    }
+}
